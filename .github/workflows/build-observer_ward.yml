@@ -40,8 +40,8 @@ jobs:
       - name: 获取上游最新 Git Tag
         id: get_upstream_tag
         run: |
-          # 使用 git ls-remote 获取所有tags，并按版本号排序，取最新的一个
-          LATEST_TAG=$(git ls-remote --tags --sort="-v:refname" https://github.com/${{ env.UPSTREAM_REPO }}.git | head -n 1 | sed 's/.*\///')
+          # 使用 git ls-remote 获取所有tags，过滤掉^{}标记，并按版本号排序，取最新的一个
+          LATEST_TAG=$(git ls-remote --tags --sort="-v:refname" https://github.com/${{ env.UPSTREAM_REPO }}.git | grep -v '\^{}' | head -n 1 | sed 's/.*\///')
           echo "上游最新 Git Tag: $LATEST_TAG"
           # 将tag设置为步骤的输出
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
@@ -120,6 +120,9 @@ jobs:
           repository: ${{ env.UPSTREAM_REPO }}
           # 指定要拉取的版本号（tag）
           ref: ${{ needs.check-for-updates.outputs.new_tag }}
+          # 确保获取标签信息
+          fetch-depth: 0
+          fetch-tags: true
 
       # 步骤2：安装Rust环境
       - name: 安装 Rust
